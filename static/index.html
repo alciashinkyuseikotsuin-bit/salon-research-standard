@@ -125,6 +125,8 @@
         .product-features li::before { content: '\2713'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
         .product-guarantee { margin-top: 12px; padding: 10px; background: #fef9c3; border-radius: 8px; font-size: 0.8rem; }
         .product-role { margin-top: 10px; font-size: 0.75rem; color: var(--text-light); font-style: italic; }
+        .product-suggestion { margin-top: 10px; padding: 10px; background: #fef3c7; border-radius: 8px; font-size: 0.8rem; }
+        .product-suggestion strong { color: var(--gold); }
         .sim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
         .sim-card { padding: 16px; background: #f8fafc; border-radius: 10px; }
         .sim-card h4 { font-size: 0.9rem; margin-bottom: 8px; color: var(--primary); }
@@ -172,12 +174,12 @@
     <div class="step-nav">
         <div class="step-item active" onclick="goStep(1)">①リサーチ</div><span class="step-arrow">→</span>
         <div class="step-item" onclick="goStep(2)">②ペルソナ</div><span class="step-arrow">→</span>
-        <div class="step-item" onclick="goStep(3)">③商品設計</div><span class="step-arrow">→</span>
-        <div class="step-item" onclick="goStep(4)">④価格試算</div><span class="step-arrow">→</span>
+        <div class="step-item" onclick="goStep(3)">③単価試算</div><span class="step-arrow">→</span>
+        <div class="step-item" onclick="goStep(4)">④商品設計</div><span class="step-arrow">→</span>
         <div class="step-item" onclick="goStep(5)">⑤コピー</div>
     </div>
 
-    <!-- Step 1 -->
+    <!-- Step 1: リサーチ -->
     <div class="step-content active" id="step-1">
         <div class="card">
             <div class="mode-switch">
@@ -229,7 +231,7 @@
         </div>
     </div>
 
-    <!-- Step 2 -->
+    <!-- Step 2: ペルソナ -->
     <div class="step-content" id="step-2">
         <div class="card"><h3>ペルソナ自動生成</h3><p style="color:var(--text-light);font-size:.9rem;margin-bottom:14px">ターゲットの悩みから5人のペルソナを自動生成します。</p>
             <div class="form-group"><label>ターゲットの悩み</label><input type="text" class="form-input" id="persona-keyword" placeholder="例: 腰痛"></div>
@@ -237,39 +239,47 @@
         </div>
         <div class="loading" id="loading-persona"><div class="spinner"></div><p>ペルソナを生成中...</p></div>
         <div id="persona-results"></div>
-        <button class="btn btn-next" id="btn-to-product" style="display:none" onclick="goStep(3)">→ 商品設計へ進む</button>
+        <button class="btn btn-next" id="btn-to-pricing" style="display:none" onclick="goStep(3)">→ 単価シミュレーションへ</button>
     </div>
 
-    <!-- Step 3 -->
+    <!-- Step 3: 単価シミュレーション（新③） -->
     <div class="step-content" id="step-3">
-        <div class="card"><h3>松竹梅 商品設計</h3><p style="color:var(--text-light);font-size:.9rem;margin-bottom:14px">竹コース（メイン商品）の価格を入力してください。</p>
-            <div class="form-group"><label>竹コースの価格（円）</label><input type="number" class="form-input" id="bamboo-price-input" value="180000" step="10000" min="30000"></div>
-            <button class="btn" onclick="genProduct()">商品を設計</button>
-        </div>
-        <div class="loading" id="loading-product"><div class="spinner"></div><p>商品を設計中...</p></div>
-        <div id="product-results"></div>
-        <button class="btn btn-next" id="btn-to-pricing" style="display:none" onclick="goStep(4)">→ 価格シミュレーションへ</button>
-    </div>
-
-    <!-- Step 4 -->
-    <div class="step-content" id="step-4">
-        <div class="card"><h3>目標売上からの逆算シミュレーション</h3>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+        <div class="card"><h3>単価シミュレーション</h3>
+            <p style="color:var(--text-light);font-size:.9rem;margin-bottom:14px">目標売上から「1回あたりの理想単価」を逆算します。この単価をもとに次のステップで商品を設計します。</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
                 <div class="form-group"><label>月の目標売上（円）</label><input type="number" class="form-input" id="sim-target" value="1000000" step="100000"></div>
-                <div class="form-group"><label>稼働日数/月</label><input type="number" class="form-input" id="sim-days" value="22"></div>
-                <div class="form-group"><label>1日の予約枠数</label><input type="number" class="form-input" id="sim-slots" value="6"></div>
-                <div class="form-group"><label>竹コース価格</label><input type="number" class="form-input" id="sim-bamboo" value="180000" step="10000"></div>
-                <div class="form-group"><label>竹コース期間（月）</label><input type="number" class="form-input" id="sim-months" value="3"></div>
-                <div class="form-group"><label>梅コース価格</label><input type="number" class="form-input" id="sim-plum" value="27000" step="1000"></div>
+                <div class="form-group"><label>理想の営業日数/月</label><input type="number" class="form-input" id="sim-days" value="22" min="1" max="31"></div>
+                <div class="form-group"><label>理想の1日の予約枠数</label><input type="number" class="form-input" id="sim-slots" value="6" min="1" max="20"></div>
             </div>
-            <button class="btn" style="margin-top:8px" onclick="genPricing()">シミュレーション実行</button>
+            <button class="btn" style="margin-top:8px" onclick="genPricing()">単価を算出</button>
         </div>
         <div class="loading" id="loading-pricing"><div class="spinner"></div><p>計算中...</p></div>
         <div id="pricing-results"></div>
+        <button class="btn btn-next" id="btn-to-product" style="display:none" onclick="goStep(4)">→ 商品設計へ進む</button>
+    </div>
+
+    <!-- Step 4: 松竹梅商品設計（新④） -->
+    <div class="step-content" id="step-4">
+        <div class="card"><h3>松竹梅 商品設計</h3>
+            <p style="color:var(--text-light);font-size:.9rem;margin-bottom:14px">③で算出した単価をもとに、竹コース（メイン商品）の回数・期間を設定して松竹梅の商品を自動設計します。</p>
+            <div class="sim-grid" id="unit-price-display" style="margin-bottom:14px;display:none">
+                <div class="sim-card" style="background:#eef2ff">
+                    <h4>1回あたりの単価（③で算出）</h4>
+                    <div class="sim-value" style="color:var(--primary)" id="show-unit-price">-</div>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+                <div class="form-group"><label>竹コースの施術回数</label><input type="number" class="form-input" id="bamboo-sessions-input" value="12" min="1" max="48"></div>
+                <div class="form-group"><label>竹コースの期間</label><select class="form-input" id="bamboo-duration-input"><option value="1ヶ月">1ヶ月</option><option value="2ヶ月">2ヶ月</option><option value="3ヶ月" selected>3ヶ月</option><option value="4ヶ月">4ヶ月</option><option value="5ヶ月">5ヶ月</option><option value="6ヶ月">6ヶ月</option></select></div>
+            </div>
+            <button class="btn" style="margin-top:8px" onclick="genProduct()">商品を設計</button>
+        </div>
+        <div class="loading" id="loading-product"><div class="spinner"></div><p>商品を設計中...</p></div>
+        <div id="product-results"></div>
         <button class="btn btn-next" id="btn-to-copy" style="display:none" onclick="goStep(5)">→ キャッチコピーを作成</button>
     </div>
 
-    <!-- Step 5 -->
+    <!-- Step 5: コピー -->
     <div class="step-content" id="step-5">
         <div class="card"><h3>キャッチコピー自動生成</h3><p style="color:var(--text-light);font-size:.9rem;margin-bottom:14px">10種類の心理テクニックでコピーを自動生成します。</p>
             <button class="btn" onclick="genCopy()">コピーを生成</button>
@@ -281,7 +291,7 @@
 </div>
 
 <script>
-let G = { keyword:'', results:[], personas:[], products:null, pricing:null, copies:[], step:1, done:new Set() };
+let G = { keyword:'', results:[], personas:[], products:null, pricing:null, copies:[], unit_price:0, step:1, done:new Set() };
 let progressTimer = null;
 
 function goStep(n) {
@@ -290,8 +300,10 @@ function goStep(n) {
     document.querySelectorAll('.step-item').forEach((el,i) => { el.classList.remove('active'); if(i===n-1) el.classList.add('active'); if(G.done.has(i+1)) el.classList.add('done'); });
     window.scrollTo({top:0,behavior:'smooth'});
     if(n===2) document.getElementById('persona-keyword').value = G.keyword;
-    if(n===3 && G.products) document.getElementById('bamboo-price-input').value = G.products.bamboo?.price||180000;
-    if(n===4) { document.getElementById('sim-bamboo').value = G.products?.bamboo?.price||180000; document.getElementById('sim-plum').value = G.products?.plum?.options?.[0]?.price||27000; }
+    if(n===4 && G.unit_price) {
+        document.getElementById('show-unit-price').textContent = G.unit_price.toLocaleString() + '円';
+        document.getElementById('unit-price-display').style.display = 'grid';
+    }
 }
 function markDone(n) { G.done.add(n); }
 function esc(t) { const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
@@ -305,6 +317,7 @@ function stopProg(){if(progressTimer){clearInterval(progressTimer);progressTimer
 function switchMode(m){document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));document.getElementById('search-mode').style.display=m==='search'?'block':'none';document.getElementById('paste-mode').classList.toggle('active',m==='paste');}
 function setKW(k){document.getElementById('keyword-input').value=k;handleSearch(new Event('submit'));}
 
+// ========== Step 1: リサーチ ==========
 async function handleSearch(e){
     e.preventDefault();const kw=document.getElementById('keyword-input').value.trim();if(!kw)return;G.keyword=kw;
     document.getElementById('loading').classList.add('active');document.getElementById('loading-text').textContent='検索パターンを自動生成中...';
@@ -344,42 +357,153 @@ function filterR(f,btn){
     const c=document.getElementById('results-list');c.innerHTML='';s.forEach(r=>c.appendChild(mkCard(r)));document.getElementById('results-count').textContent=`${s.length}件表示中`;
 }
 
-// Step 2
+// ========== Step 2: ペルソナ ==========
 async function genPersona(){
     const kw=document.getElementById('persona-keyword').value.trim();if(!kw){alert('悩みキーワードを入力してください');return;}G.keyword=kw;
-    document.getElementById('loading-persona').classList.add('active');document.getElementById('persona-results').innerHTML='';document.getElementById('btn-to-product').style.display='none';
+    document.getElementById('loading-persona').classList.add('active');document.getElementById('persona-results').innerHTML='';document.getElementById('btn-to-pricing').style.display='none';
     try{const r=await fetch('/api/persona',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keyword:kw,target_symptom:kw,search_results:G.results.slice(0,20)})});const d=await r.json();
         if(d.personas?.length>0){G.personas=d.personas;const c=document.getElementById('persona-results');c.innerHTML='';const colors=['#6366f1','#dc2626','#8b5cf6','#ea580c','#65a30d'];
         d.personas.forEach(p=>{c.innerHTML+=`<div class="persona-card" style="border-top-color:${colors[p.id-1]}"><div class="persona-header"><span class="persona-name">${esc(p.name)}</span><span class="persona-type-badge" style="background:${colors[p.id-1]}">${esc(p.type_label)}</span></div><div class="persona-info"><span class="persona-tag">${esc(p.age)}</span><span class="persona-tag">${esc(p.gender)}</span><span class="persona-tag">${esc(p.occupation)}</span><span class="persona-tag">${esc(p.family)}</span></div><div class="persona-detail"><strong>日常:</strong> ${esc(p.daily_pattern)}</div><div class="persona-detail"><strong>試したこと:</strong> ${esc(p.tried_solution)}</div><div class="persona-voice">${esc(p.inner_voice)}</div></div>`;});
-        markDone(2);document.getElementById('btn-to-product').style.display='block';}
+        markDone(2);document.getElementById('btn-to-pricing').style.display='block';}
     }catch(err){alert('エラー: '+err.message);}
     document.getElementById('loading-persona').classList.remove('active');
 }
 
-// Step 3
-async function genProduct(){
-    const bp=parseInt(document.getElementById('bamboo-price-input').value)||180000;
-    document.getElementById('loading-product').classList.add('active');document.getElementById('product-results').innerHTML='';document.getElementById('btn-to-pricing').style.display='none';
-    try{const r=await fetch('/api/product',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keyword:G.keyword,target_symptom:G.keyword,bamboo_price:bp})});const d=await r.json();G.products=d;
-        const po=d.plum.options[0];const c=document.getElementById('product-results');
-        c.innerHTML=`<div class="product-grid"><div class="product-card pine"><span class="product-rank pine">松</span><div class="product-name">${esc(d.pine.name)}</div><div class="product-price pine">${esc(d.pine.price_display)}</div><div class="product-meta">${esc(d.pine.sessions)} / ${esc(d.pine.duration)}</div><ul class="product-features">${d.pine.features.map(f=>`<li>${esc(f)}</li>`).join('')}</ul><div class="product-guarantee">🛡 ${esc(d.pine.guarantee)}</div><div class="product-role">${esc(d.pine.role)}</div></div><div class="product-card bamboo"><span class="product-rank bamboo">竹 ⭐おすすめ</span><div class="product-name">${esc(d.bamboo.name)}</div><div class="product-price bamboo">${esc(d.bamboo.price_display)}</div><div class="product-meta">${esc(d.bamboo.sessions)} / ${esc(d.bamboo.duration)}</div><ul class="product-features">${d.bamboo.features.map(f=>`<li>${esc(f)}</li>`).join('')}</ul><div class="product-guarantee">🛡 ${esc(d.bamboo.guarantee)}</div><div style="margin-top:8px;font-size:.85rem;color:var(--primary);font-weight:600">1回 ${esc(d.bamboo.per_session)} ／ 1日 ${esc(d.bamboo.per_day)}</div><div class="product-role">${esc(d.bamboo.role)}</div></div><div class="product-card plum"><span class="product-rank plum">梅 お試し</span><div class="product-name">${esc(d.plum.name)}</div><div class="product-price plum">${po.price.toLocaleString()}円</div><div class="product-meta">${esc(po.sessions)} / ${esc(po.duration)}</div><ul class="product-features">${d.plum.features.map(f=>`<li>${esc(f)}</li>`).join('')}</ul><div class="product-role">${esc(d.plum.role)}</div></div></div><div class="tips-box"><h4>💡 セールスTips</h4><p><strong>提示順序:</strong> ${esc(d.sales_tips.presentation_order)}</p><p><strong>クロージング:</strong> ${esc(d.sales_tips.closing_phrase)}</p><p style="margin-top:8px"><strong>反論処理:</strong></p><ul style="list-style:none;padding:0;font-size:.85rem"><li>「高い」→ ${esc(d.sales_tips.objection_handling.expensive)}</li><li>「効果ある？」→ ${esc(d.sales_tips.objection_handling.uncertain)}</li><li>「時間ない」→ ${esc(d.sales_tips.objection_handling.time)}</li></ul></div>`;
-        markDone(3);document.getElementById('btn-to-pricing').style.display='block';
-    }catch(err){alert('エラー: '+err.message);}
-    document.getElementById('loading-product').classList.remove('active');
-}
-
-// Step 4
+// ========== Step 3: 単価シミュレーション（新③） ==========
 async function genPricing(){
-    document.getElementById('loading-pricing').classList.add('active');document.getElementById('pricing-results').innerHTML='';document.getElementById('btn-to-copy').style.display='none';
-    const body={monthly_target:parseInt(document.getElementById('sim-target').value)||1000000,working_days:parseInt(document.getElementById('sim-days').value)||22,slots_per_day:parseInt(document.getElementById('sim-slots').value)||6,bamboo_price:parseInt(document.getElementById('sim-bamboo').value)||180000,bamboo_months:parseInt(document.getElementById('sim-months').value)||3,plum_price:parseInt(document.getElementById('sim-plum').value)||27000};
-    try{const r=await fetch('/api/pricing',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();G.pricing=d;
-        document.getElementById('pricing-results').innerHTML=`<div class="card"><h3>シミュレーション結果</h3><div class="sim-grid"><div class="sim-card"><h4>月の総予約枠</h4><div class="sim-value">${d.basic.total_monthly_slots}枠</div><div class="sim-desc">${d.input.working_days}日×${d.input.slots_per_day}枠/日</div></div><div class="sim-card"><h4>竹コース月額換算</h4><div class="sim-value">${d.basic.bamboo_monthly_display}</div><div class="sim-desc">1回 ${d.basic.bamboo_per_session_display}</div></div><div class="sim-card"><h4>最大受入人数</h4><div class="sim-value">${d.basic.max_bamboo_clients}人</div><div class="sim-desc">竹コースの同時対応上限</div></div></div></div><div class="card"><h3>${esc(d.scenario_bamboo_only.title)}</h3><div class="sim-value" style="color:var(--primary);margin-bottom:8px">月 ${d.scenario_bamboo_only.new_clients_needed}人 の新規獲得</div><p style="font-size:.9rem;color:var(--text-light)">${esc(d.scenario_bamboo_only.description)}</p></div><div class="card"><h3>${esc(d.scenario_with_plum.title)}</h3><div class="sim-value" style="color:var(--green);margin-bottom:8px">梅${d.scenario_with_plum.plum_clients_needed}人 → 竹${d.scenario_with_plum.bamboo_conversions}人成約</div><p style="font-size:.9rem;color:var(--text-light)">${esc(d.scenario_with_plum.description)}</p></div><div class="card"><h3>${esc(d.stable_phase.title)}</h3><div class="sim-value" style="color:var(--orange);margin-bottom:8px">月 ${d.stable_phase.monthly_new_needed}人 の新規でOK</div><p style="font-size:.9rem;color:var(--text-light)">${esc(d.stable_phase.description)}</p></div><div class="card"><h3>アクションアイテム</h3><ul class="action-list">${d.action_items.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div><div class="tips-box"><h4>💡 価格の伝え方</h4><p>${esc(d.pricing_tips.daily_cost_framing)}</p><p>${esc(d.pricing_tips.comparison)}</p></div>`;
-        markDone(4);document.getElementById('btn-to-copy').style.display='block';
+    document.getElementById('loading-pricing').classList.add('active');
+    document.getElementById('pricing-results').innerHTML='';
+    document.getElementById('btn-to-product').style.display='none';
+    const body={
+        monthly_target: parseInt(document.getElementById('sim-target').value)||1000000,
+        working_days: parseInt(document.getElementById('sim-days').value)||22,
+        slots_per_day: parseInt(document.getElementById('sim-slots').value)||6
+    };
+    try{
+        const r=await fetch('/api/pricing',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        const d=await r.json();
+        if(d.error){ alert(d.error); return; }
+        G.pricing=d;
+        G.unit_price=d.calculation.unit_price;
+
+        document.getElementById('pricing-results').innerHTML=`
+            <div class="card"><h3>算出結果</h3>
+                <div class="sim-grid">
+                    <div class="sim-card" style="background:#eef2ff;border:2px solid var(--primary);border-radius:10px">
+                        <h4 style="color:var(--primary)">1回あたりの理想単価</h4>
+                        <div class="sim-value" style="color:var(--primary);font-size:1.8rem">${esc(d.calculation.unit_price_display)}</div>
+                        <div class="sim-desc">100%稼働の場合</div>
+                    </div>
+                    <div class="sim-card">
+                        <h4>月の総予約枠</h4>
+                        <div class="sim-value">${d.calculation.total_monthly_slots}枠</div>
+                        <div class="sim-desc">${d.input.working_days}日 × ${d.input.slots_per_day}枠/日</div>
+                    </div>
+                    <div class="sim-card">
+                        <h4>1日の目標売上</h4>
+                        <div class="sim-value">${esc(d.calculation.daily_target_display)}</div>
+                        <div class="sim-desc">${esc(d.input.monthly_target_display)} ÷ ${d.input.working_days}日</div>
+                    </div>
+                </div>
+                <div style="margin-top:16px;padding:14px;background:#fef3c7;border-radius:10px">
+                    <h4 style="font-size:.9rem;color:var(--gold);margin-bottom:6px">📊 ${esc(d.realistic.label)}</h4>
+                    <p style="font-size:.9rem">${esc(d.realistic.description)}</p>
+                </div>
+                <div style="margin-top:12px;padding:14px;background:#f0f4ff;border-radius:10px">
+                    <p style="font-size:.95rem;font-weight:600;color:var(--primary)">${esc(d.summary.message)}</p>
+                    <p style="font-size:.85rem;color:var(--text-light);margin-top:4px">${esc(d.summary.daily_message)}</p>
+                </div>
+            </div>`;
+        markDone(3);
+        document.getElementById('btn-to-product').style.display='block';
     }catch(err){alert('エラー: '+err.message);}
     document.getElementById('loading-pricing').classList.remove('active');
 }
 
-// Step 5
+// ========== Step 4: 松竹梅商品設計（新④） ==========
+async function genProduct(){
+    if(!G.unit_price){alert('先に③単価シミュレーションを実行してください');return;}
+    const sessions = parseInt(document.getElementById('bamboo-sessions-input').value)||12;
+    const duration = document.getElementById('bamboo-duration-input').value||'3ヶ月';
+    document.getElementById('loading-product').classList.add('active');
+    document.getElementById('product-results').innerHTML='';
+    document.getElementById('btn-to-copy').style.display='none';
+    try{
+        const r=await fetch('/api/product',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+            keyword: G.keyword,
+            target_symptom: G.keyword,
+            unit_price: G.unit_price,
+            bamboo_sessions: sessions,
+            bamboo_duration: duration,
+        })});
+        const d=await r.json();
+        if(d.error){ alert(d.error); return; }
+        G.products=d;
+
+        function renderSug(suggestions){
+            if(!suggestions||suggestions.length===0) return '';
+            let html='<div class="product-suggestion">';
+            html+='<strong>💡 おすすめ価格:</strong><br>';
+            suggestions.forEach(s=>{
+                html+=`<span style="font-weight:700;font-size:.95rem">${esc(s.display)}</span> <span style="color:var(--text-light)">— ${esc(s.reason)}</span><br>`;
+            });
+            html+='</div>';
+            return html;
+        }
+
+        const c=document.getElementById('product-results');
+        c.innerHTML=`
+        <div class="product-grid">
+            <div class="product-card pine">
+                <span class="product-rank pine">松</span>
+                <div class="product-name">${esc(d.pine.name)}</div>
+                <div class="product-price pine">${esc(d.pine.raw_price_display)}</div>
+                <div class="product-meta">${esc(d.pine.sessions_display)} / ${esc(d.pine.duration)}</div>
+                <ul class="product-features">${d.pine.features.map(f=>'<li>'+esc(f)+'</li>').join('')}</ul>
+                <div class="product-guarantee">🛡 ${esc(d.pine.guarantee)}</div>
+                ${renderSug(d.pine.suggested_prices)}
+                <div class="product-role">${esc(d.pine.role)}</div>
+            </div>
+            <div class="product-card bamboo">
+                <span class="product-rank bamboo">竹 ⭐おすすめ</span>
+                <div class="product-name">${esc(d.bamboo.name)}</div>
+                <div class="product-price bamboo">${esc(d.bamboo.raw_price_display)}</div>
+                <div class="product-meta">${esc(d.bamboo.sessions_display)} / ${esc(d.bamboo.duration)}</div>
+                <ul class="product-features">${d.bamboo.features.map(f=>'<li>'+esc(f)+'</li>').join('')}</ul>
+                <div class="product-guarantee">🛡 ${esc(d.bamboo.guarantee)}</div>
+                <div style="margin-top:8px;font-size:.85rem;color:var(--primary);font-weight:600">
+                    1回 ${esc(d.bamboo.per_session)}${d.bamboo.per_day?' ／ 1日 '+esc(d.bamboo.per_day):''}
+                </div>
+                ${renderSug(d.bamboo.suggested_prices)}
+                <div class="product-role">${esc(d.bamboo.role)}</div>
+            </div>
+            <div class="product-card plum">
+                <span class="product-rank plum">梅 お試し</span>
+                <div class="product-name">${esc(d.plum.name)}</div>
+                <div class="product-price plum">${esc(d.plum.raw_price_display)}</div>
+                <div class="product-meta">${esc(d.plum.sessions_display)} / ${esc(d.plum.duration)}</div>
+                <ul class="product-features">${d.plum.features.map(f=>'<li>'+esc(f)+'</li>').join('')}</ul>
+                ${renderSug(d.plum.suggested_prices)}
+                <div class="product-role">${esc(d.plum.role)}</div>
+            </div>
+        </div>
+        <div class="tips-box"><h4>💡 セールスTips</h4>
+            <p><strong>提示順序:</strong> ${esc(d.sales_tips.presentation_order)}</p>
+            <p><strong>クロージング:</strong> ${esc(d.sales_tips.closing_phrase)}</p>
+            <p style="margin-top:8px"><strong>反論処理:</strong></p>
+            <ul style="list-style:none;padding:0;font-size:.85rem">
+                ${d.sales_tips.objection_handling.expensive?'<li>「高い」→ '+esc(d.sales_tips.objection_handling.expensive)+'</li>':''}
+                <li>「効果ある？」→ ${esc(d.sales_tips.objection_handling.uncertain)}</li>
+                <li>「時間ない」→ ${esc(d.sales_tips.objection_handling.time)}</li>
+            </ul>
+        </div>`;
+        markDone(4);
+        document.getElementById('btn-to-copy').style.display='block';
+    }catch(err){alert('エラー: '+err.message);}
+    document.getElementById('loading-product').classList.remove('active');
+}
+
+// ========== Step 5: コピー ==========
 async function genCopy(){
     document.getElementById('loading-copy').classList.add('active');document.getElementById('copy-results').innerHTML='';
     try{const r=await fetch('/api/copywrite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keyword:G.keyword,target_symptom:G.keyword,personas:G.personas})});const d=await r.json();

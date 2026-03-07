@@ -152,69 +152,67 @@ def api_persona():
         return jsonify({'error': str(e)}), 500
 
 
-# ========== API: 松竹梅商品設計 ==========
-
-@app.route('/api/product', methods=['POST'])
-def api_product():
-    """松竹梅商品設計API"""
-    try:
-        data = request.get_json()
-        keyword = data.get('keyword', '').strip() if data else ''
-        target_symptom = data.get('target_symptom', '').strip() if data else ''
-        bamboo_price = data.get('bamboo_price', 0) if data else 0
-
-        if not keyword:
-            return jsonify({'error': 'キーワードを入力してください'}), 400
-
-        print(f"[product] キーワード: {keyword}, 竹価格: {bamboo_price}")
-
-        products = design_products(
-            keyword=keyword,
-            target_symptom=target_symptom,
-            bamboo_price=bamboo_price,
-        )
-
-        print(f"[product] 商品設計完了")
-
-        return jsonify(products)
-
-    except Exception as e:
-        print(f"[product] エラー: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
-# ========== API: 価格逆算 ==========
+# ========== API: 単価シミュレーション（新③） ==========
 
 @app.route('/api/pricing', methods=['POST'])
 def api_pricing():
-    """目標金額→価格逆算API"""
+    """目標売上→1回あたりの単価を算出するAPI"""
     try:
         data = request.get_json()
 
         monthly_target = data.get('monthly_target', 1000000) if data else 1000000
         working_days = data.get('working_days', 22) if data else 22
         slots_per_day = data.get('slots_per_day', 6) if data else 6
-        bamboo_price = data.get('bamboo_price', 180000) if data else 180000
-        bamboo_months = data.get('bamboo_months', 3) if data else 3
-        plum_price = data.get('plum_price', 27000) if data else 27000
 
-        print(f"[pricing] 目標: {monthly_target:,}円/月")
+        print(f"[pricing] 目標: {monthly_target:,}円/月, {working_days}日, {slots_per_day}枠/日")
 
         result = calculate_pricing(
             monthly_target=monthly_target,
             working_days=working_days,
             slots_per_day=slots_per_day,
-            bamboo_price=bamboo_price,
-            bamboo_months=bamboo_months,
-            plum_price=plum_price,
         )
 
-        print(f"[pricing] 計算完了")
+        print(f"[pricing] 単価: {result['calculation']['unit_price_display']}")
 
         return jsonify(result)
 
     except Exception as e:
         print(f"[pricing] エラー: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+# ========== API: 松竹梅商品設計（新④） ==========
+
+@app.route('/api/product', methods=['POST'])
+def api_product():
+    """単価ベースの松竹梅商品設計API"""
+    try:
+        data = request.get_json()
+        keyword = data.get('keyword', '').strip() if data else ''
+        target_symptom = data.get('target_symptom', '').strip() if data else ''
+        unit_price = data.get('unit_price', 0) if data else 0
+        bamboo_sessions = data.get('bamboo_sessions', 12) if data else 12
+        bamboo_duration = data.get('bamboo_duration', '3ヶ月') if data else '3ヶ月'
+
+        if not keyword:
+            return jsonify({'error': 'キーワードを入力してください'}), 400
+
+        print(f"[product] キーワード: {keyword}, 単価: {unit_price}, 回数: {bamboo_sessions}, 期間: {bamboo_duration}")
+
+        products = design_products(
+            keyword=keyword,
+            target_symptom=target_symptom,
+            unit_price=unit_price,
+            bamboo_sessions=bamboo_sessions,
+            bamboo_duration=bamboo_duration,
+        )
+
+        print(f"[product] 商品設計完了 - 竹: {products['bamboo']['raw_price_display']}")
+
+        return jsonify(products)
+
+    except Exception as e:
+        print(f"[product] エラー: {e}")
         return jsonify({'error': str(e)}), 500
 
 
