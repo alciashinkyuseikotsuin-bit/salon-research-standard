@@ -274,7 +274,19 @@
             </div>
             <button class="btn" style="margin-top:8px" onclick="genProduct()">商品を設計</button>
         </div>
-        <div class="loading" id="loading-product"><div class="spinner"></div><p>商品を設計中...</p></div>
+        <div class="loading" id="loading-product"><div class="spinner"></div><p id="product-loading-text">商品を設計中...</p>
+            <div class="progress-container" id="product-progress" style="display:none">
+                <div class="progress-bar"><div class="progress-fill" id="product-progress-fill"></div></div>
+                <div class="progress-stages">
+                    <span class="progress-stage" id="pd-stage-1">単価計算</span>
+                    <span class="progress-stage" id="pd-stage-2">竹コース</span>
+                    <span class="progress-stage" id="pd-stage-3">松コース</span>
+                    <span class="progress-stage" id="pd-stage-4">梅コース</span>
+                    <span class="progress-stage" id="pd-stage-5">心理価格</span>
+                </div>
+                <div class="progress-percent" id="product-progress-percent">0%</div>
+            </div>
+        </div>
         <div id="product-results"></div>
         <button class="btn btn-next" id="btn-to-copy" style="display:none" onclick="goStep(5)">→ キャッチコピーを作成</button>
     </div>
@@ -421,13 +433,55 @@ async function genPricing(){
 }
 
 // ========== Step 4: 松竹梅商品設計（新④） ==========
+const PD_STEPS=[
+    {p:0, s:1, t:'単価データを読み込み中...'},
+    {p:12,s:1, t:'単価から合計金額を計算中...'},
+    {p:25,s:2, t:'竹コース（メイン商品）を設計中...'},
+    {p:38,s:2, t:'竹コースの特典を構成中...'},
+    {p:50,s:3, t:'松コース（プレミアム）を設計中...'},
+    {p:62,s:3, t:'松コースの特典を構成中...'},
+    {p:72,s:4, t:'梅コース（お試し）を設計中...'},
+    {p:82,s:5, t:'心理的価格を分析中...'},
+    {p:90,s:5, t:'おすすめ価格を算出中...'},
+    {p:96,s:5, t:'セールスTipsを生成中...'},
+];
+let pdTimer=null;
+function startProductProg(){
+    const c=document.getElementById('product-progress'),f=document.getElementById('product-progress-fill'),p=document.getElementById('product-progress-percent');
+    c.style.display='block';f.style.width='0%';p.textContent='0%';
+    for(let i=1;i<=5;i++){document.getElementById('pd-stage-'+i).classList.remove('active','done');}
+    let idx=0;
+    pdTimer=setInterval(()=>{
+        if(idx>=PD_STEPS.length){clearInterval(pdTimer);pdTimer=null;return;}
+        const s=PD_STEPS[idx];
+        f.style.width=s.p+'%';p.textContent=s.p+'%';
+        document.getElementById('product-loading-text').textContent=s.t;
+        for(let i=1;i<=5;i++){
+            const el=document.getElementById('pd-stage-'+i);
+            if(i<s.s){el.classList.remove('active');el.classList.add('done');}
+            else if(i===s.s){el.classList.add('active');el.classList.remove('done');}
+            else{el.classList.remove('active','done');}
+        }
+        idx++;
+    },400);
+}
+function stopProductProg(){
+    if(pdTimer){clearInterval(pdTimer);pdTimer=null;}
+    document.getElementById('product-progress-fill').style.width='100%';
+    document.getElementById('product-progress-percent').textContent='100%';
+    document.getElementById('product-loading-text').textContent='完了！';
+    for(let i=1;i<=5;i++){const el=document.getElementById('pd-stage-'+i);el.classList.remove('active');el.classList.add('done');}
+}
+
 async function genProduct(){
     if(!G.unit_price){alert('先に③単価シミュレーションを実行してください');return;}
     const sessions = parseInt(document.getElementById('bamboo-sessions-input').value)||12;
     const duration = document.getElementById('bamboo-duration-input').value||'3ヶ月';
     document.getElementById('loading-product').classList.add('active');
+    document.getElementById('product-loading-text').textContent='商品を設計中...';
     document.getElementById('product-results').innerHTML='';
     document.getElementById('btn-to-copy').style.display='none';
+    startProductProg();
     try{
         const r=await fetch('/api/product',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
             keyword: G.keyword,
@@ -437,6 +491,7 @@ async function genProduct(){
             bamboo_duration: duration,
         })});
         const d=await r.json();
+        stopProductProg();
         if(d.error){ alert(d.error); return; }
         G.products=d;
 
@@ -499,8 +554,9 @@ async function genProduct(){
         </div>`;
         markDone(4);
         document.getElementById('btn-to-copy').style.display='block';
-    }catch(err){alert('エラー: '+err.message);}
+    }catch(err){stopProductProg();alert('エラー: '+err.message);}
     document.getElementById('loading-product').classList.remove('active');
+    document.getElementById('product-progress').style.display='none';
 }
 
 // ========== Step 5: コピー ==========
