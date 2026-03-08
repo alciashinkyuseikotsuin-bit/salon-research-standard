@@ -3,11 +3,9 @@
 サロン向け 商品設計サポートツール（スタンダード版）
 
 機能:
-1. Yahoo!知恵袋リサーチ（シンプル版と同様）
-2. ペルソナ5人自動生成
-3. 松竹梅 商品設計
-4. 目標金額→価格逆算
-5. キャッチコピー10個生成
+1. Yahoo!知恵袋リサーチ
+2. 目標売上→1回あたりの単価を逆算
+3. 松竹梅 商品設計（心理的価格提案付き）
 """
 
 import json
@@ -20,10 +18,8 @@ from flask import Flask, request, jsonify, send_from_directory
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from scraper import search_and_fetch
 from analyzer import analyze_results, analyze_concern
-from persona_generator import generate_personas
 from product_designer import design_products
 from price_calculator import calculate_pricing
-from copywriter import generate_catchcopy
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=os.path.join(BASE_DIR, 'static'))
@@ -116,43 +112,7 @@ def api_analyze():
         return jsonify({'error': str(e)}), 500
 
 
-# ========== API: ペルソナ生成 ==========
-
-@app.route('/api/persona', methods=['POST'])
-def api_persona():
-    """ペルソナ5人生成API"""
-    try:
-        data = request.get_json()
-        keyword = data.get('keyword', '').strip() if data else ''
-        target_symptom = data.get('target_symptom', '').strip() if data else ''
-        search_results = data.get('search_results', []) if data else []
-
-        if not keyword:
-            return jsonify({'error': 'キーワードを入力してください'}), 400
-
-        print(f"[persona] キーワード: {keyword}, 症状: {target_symptom}")
-
-        personas = generate_personas(
-            keyword=keyword,
-            target_symptom=target_symptom,
-            search_results=search_results,
-            count=5,
-        )
-
-        print(f"[persona] {len(personas)}人のペルソナを生成")
-
-        return jsonify({
-            'keyword': keyword,
-            'personas': personas,
-            'count': len(personas),
-        })
-
-    except Exception as e:
-        print(f"[persona] エラー: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
-# ========== API: 単価シミュレーション（新③） ==========
+# ========== API: 単価シミュレーション ==========
 
 @app.route('/api/pricing', methods=['POST'])
 def api_pricing():
@@ -181,7 +141,7 @@ def api_pricing():
         return jsonify({'error': str(e)}), 500
 
 
-# ========== API: 松竹梅商品設計（新④） ==========
+# ========== API: 松竹梅商品設計 ==========
 
 @app.route('/api/product', methods=['POST'])
 def api_product():
@@ -213,42 +173,6 @@ def api_product():
 
     except Exception as e:
         print(f"[product] エラー: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
-# ========== API: キャッチコピー生成 ==========
-
-@app.route('/api/copywrite', methods=['POST'])
-def api_copywrite():
-    """キャッチコピー10個生成API"""
-    try:
-        data = request.get_json()
-        keyword = data.get('keyword', '').strip() if data else ''
-        target_symptom = data.get('target_symptom', '').strip() if data else ''
-        personas = data.get('personas', []) if data else []
-
-        if not keyword:
-            return jsonify({'error': 'キーワードを入力してください'}), 400
-
-        print(f"[copywrite] キーワード: {keyword}")
-
-        copies = generate_catchcopy(
-            keyword=keyword,
-            target_symptom=target_symptom,
-            personas=personas,
-            count=10,
-        )
-
-        print(f"[copywrite] {len(copies)}個のコピーを生成")
-
-        return jsonify({
-            'keyword': keyword,
-            'copies': copies,
-            'count': len(copies),
-        })
-
-    except Exception as e:
-        print(f"[copywrite] エラー: {e}")
         return jsonify({'error': str(e)}), 500
 
 
