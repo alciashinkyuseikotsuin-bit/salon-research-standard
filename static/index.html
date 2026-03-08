@@ -394,7 +394,10 @@ async function genPricing(){
     try{
         const r=await fetch('/api/pricing',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
         const d=await r.json();
-        if(d.error){ alert(d.error); return; }
+        if(d.error){
+            document.getElementById('loading-pricing').classList.remove('active');
+            alert(d.error); return;
+        }
         G.pricing=d;
         G.unit_price=d.calculation.unit_price;
 
@@ -492,7 +495,11 @@ async function genProduct(){
         })});
         const d=await r.json();
         stopProductProg();
-        if(d.error){ alert(d.error); return; }
+        if(d.error){
+            document.getElementById('loading-product').classList.remove('active');
+            document.getElementById('product-progress').style.display='none';
+            alert(d.error); return;
+        }
         G.products=d;
 
         function renderSug(suggestions){
