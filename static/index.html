@@ -220,7 +220,17 @@
             </div>
             <button class="btn" style="margin-top:8px" onclick="genPricing()">単価を算出</button>
         </div>
-        <div class="loading" id="loading-pricing"><div class="spinner"></div><p>計算中...</p></div>
+        <div class="loading" id="loading-pricing"><div class="spinner"></div><p id="pricing-loading-text">計算中...</p>
+            <div class="progress-container" id="pricing-progress" style="display:none">
+                <div class="progress-bar"><div class="progress-fill" id="pricing-progress-fill"></div></div>
+                <div class="progress-stages">
+                    <span class="progress-stage" id="pr-stage-1">入力確認</span>
+                    <span class="progress-stage" id="pr-stage-2">単価計算</span>
+                    <span class="progress-stage" id="pr-stage-3">分析</span>
+                </div>
+                <div class="progress-percent" id="pricing-progress-percent">0%</div>
+            </div>
+        </div>
         <div id="pricing-results"></div>
         <button class="btn btn-next" id="btn-to-product" style="display:none" onclick="goStep(3)">→ 商品設計へ進む</button>
     </div>
@@ -325,10 +335,47 @@ function filterR(f,btn){
 }
 
 // ========== Step 2: 単価シミュレーション ==========
+const PR_STEPS=[
+    {p:0, s:1, t:'入力データを確認中...'},
+    {p:25,s:1, t:'目標売上を分析中...'},
+    {p:50,s:2, t:'理想単価を計算中...'},
+    {p:70,s:2, t:'稼働率シミュレーション中...'},
+    {p:85,s:3, t:'結果を分析中...'},
+    {p:95,s:3, t:'レポート生成中...'},
+];
+let prTimer=null;
+function startPricingProg(){
+    const c=document.getElementById('pricing-progress'),f=document.getElementById('pricing-progress-fill'),p=document.getElementById('pricing-progress-percent');
+    c.style.display='block';f.style.width='0%';p.textContent='0%';
+    for(let i=1;i<=3;i++){document.getElementById('pr-stage-'+i).classList.remove('active','done');}
+    let idx=0;
+    prTimer=setInterval(()=>{
+        if(idx>=PR_STEPS.length){clearInterval(prTimer);prTimer=null;return;}
+        const s=PR_STEPS[idx];
+        f.style.width=s.p+'%';p.textContent=s.p+'%';
+        document.getElementById('pricing-loading-text').textContent=s.t;
+        for(let i=1;i<=3;i++){
+            const el=document.getElementById('pr-stage-'+i);
+            if(i<s.s){el.classList.remove('active');el.classList.add('done');}
+            else if(i===s.s){el.classList.add('active');el.classList.remove('done');}
+            else{el.classList.remove('active','done');}
+        }
+        idx++;
+    },250);
+}
+function stopPricingProg(){
+    if(prTimer){clearInterval(prTimer);prTimer=null;}
+    document.getElementById('pricing-progress-fill').style.width='100%';
+    document.getElementById('pricing-progress-percent').textContent='100%';
+    document.getElementById('pricing-loading-text').textContent='完了！';
+    for(let i=1;i<=3;i++){const el=document.getElementById('pr-stage-'+i);el.classList.remove('active');el.classList.add('done');}
+}
 async function genPricing(){
     document.getElementById('loading-pricing').classList.add('active');
+    document.getElementById('pricing-loading-text').textContent='計算中...';
     document.getElementById('pricing-results').innerHTML='';
     document.getElementById('btn-to-product').style.display='none';
+    startPricingProg();
     const body={
         monthly_target: parseInt(document.getElementById('sim-target').value)||1000000,
         working_days: parseInt(document.getElementById('sim-days').value)||22,
@@ -338,9 +385,12 @@ async function genPricing(){
         const r=await fetch('/api/pricing',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
         const d=await r.json();
         if(d.error){
+            stopPricingProg();
             document.getElementById('loading-pricing').classList.remove('active');
+            document.getElementById('pricing-progress').style.display='none';
             alert(d.error); return;
         }
+        stopPricingProg();
         G.pricing=d;
         G.unit_price=d.calculation.unit_price;
 
@@ -374,8 +424,9 @@ async function genPricing(){
             </div>`;
         markDone(2);
         document.getElementById('btn-to-product').style.display='block';
-    }catch(err){alert('エラー: '+err.message);}
+    }catch(err){stopPricingProg();alert('エラー: '+err.message);}
     document.getElementById('loading-pricing').classList.remove('active');
+    document.getElementById('pricing-progress').style.display='none';
 }
 
 // ========== Step 3: 松竹梅商品設計 ==========
